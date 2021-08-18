@@ -5,6 +5,12 @@ from configparser import ConfigParser
 BASE_DIR = pathlib.Path.cwd()
 config = ConfigParser()
 config.read(BASE_DIR / 'conf' / 'services.conf')
+
+DEBUG = config.getboolean('DEFAULT', 'DEBUG', fallback=False)
+
 GITHUB_USERNAME = config.get('github', 'username', fallback='your_github_login')
 GITHUB_TOKEN = config.get('github', 'token', fallback='your_github_token')
 
+SCRAPY_USE_LOG = config.getboolean('scrapy', 'USE_LOG', fallback=False)
+SCRAPY_LOG_LEVEL = config.get('scrapy', 'LOG_LEVEL', fallback='DEBUG')
+SCRAPY_LOG_PATH = config.get('scrapy', 'LOG_PATH', fallback=BASE_DIR / 'logs' / 'scrapy.log')
