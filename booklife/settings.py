@@ -7,6 +7,7 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 from main import DEBUG, SCRAPY_USE_LOG, SCRAPY_LOG_LEVEL, SCRAPY_LOG_PATH
+import pathlib as ph
 
 
 BOT_NAME = 'booklife'
@@ -22,12 +23,12 @@ USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Ge
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 12
+CONCURRENT_REQUESTS = 20
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 0.5
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -93,4 +94,6 @@ ITEM_PIPELINES = {
 LOG_ENABLED = SCRAPY_USE_LOG
 LOG_LEVEL = SCRAPY_LOG_LEVEL
 if not DEBUG:
-    LOG_FILE = SCRAPY_LOG_PATH
+    _path_log = ph.Path(SCRAPY_LOG_PATH)
+    _path_log.mkdir(parents=True, exist_ok=True)
+    LOG_FILE = _path_log / 'scrapy.log'

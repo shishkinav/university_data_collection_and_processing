@@ -2,6 +2,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 from urllib.parse import urljoin
 from booklife.items import BooklifeItem
+from booklife.converters import LabirintItemConverter
 
 
 class LabirintruSpider(scrapy.Spider):
@@ -9,6 +10,7 @@ class LabirintruSpider(scrapy.Spider):
     base_url = 'https://www.labirint.ru'
     allowed_domains = ['labirint.ru']
     start_urls = ['https://www.labirint.ru/search/фантастика/?stype=0']
+    converter = LabirintItemConverter()
 
     def parse(self, response: HtmlResponse):
         template_part_url = 'search/фантастика/?stype=0&page={page_number}'

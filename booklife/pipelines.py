@@ -6,26 +6,22 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-from pymongo import MongoClient
+from services.manager_mongo.models import MyMongoClient
+from pymongo.collection import Collection
 
 
 class BooklifePipeline:
-    def process_item(self, item, spider):
-        return item
-
+    """
+    Единый pipeline для обработки поступающих Item
+    """
     def __init__(self):
-        client = MongoClient('localhost', 27017)
-        self.mongo_base = client.books
+        self.client = MyMongoClient(database_name='books')
 
     def process_item(self, item, spider):
-        # item['salary'] = self.process_salary_hh(item['salary'])
-        collection = self.mongo_base[spider.name]
-        collection.insert_one(item)
+        collection: Collection = self.client.get_collection(spider.name)
+        if not collection:
+            collection: Collection = self.client.create_collection(spider.name)
+        item_data = spider.converter.prepare_data(item)
+        # collection.update_one({'_id': {"$eq": item_data["_id"]}}, item_data, upsert=True)
+        collection.insert_one(item_data)
         return item
-
-    def process_salary_hh(self, salary):
-        min_s = None
-        max_s = None
-        cur = None
-
-        return min_s, max_s, cur
