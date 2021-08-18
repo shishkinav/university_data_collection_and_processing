@@ -1,0 +1,15 @@
+version: '3.1'
+
+# перед запуском сборки контейнеров:
+# bash -c 'python scripts/generate_env_source.py 1>.env'
+
+services:
+
+  mongo:
+    image: mongo
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '27017:27017'
+
