@@ -6,9 +6,9 @@ from pymongo.collection import Collection
 
 
 class MyMongoClient:
-    def __init__(self):
+    def __init__(self, database_name: str = 'test_database'):
         self._client = MongoClient(MONGO_DATABASE_URL)
-        self._db = self._client['test_database']
+        self._db = self._client[database_name]
 
     @property
     def client(self):
