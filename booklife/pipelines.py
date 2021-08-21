@@ -5,9 +5,12 @@
 
 
 # useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
+import scrapy
+import pathlib as ph
 from services.manager_mongo.models import MyMongoClient
 from pymongo.collection import Collection
+from scrapy.pipelines.images import ImagesPipeline
+from lxml import html
 
 
 class BooklifePipeline:
@@ -22,6 +25,54 @@ class BooklifePipeline:
         if not collection:
             collection: Collection = self.client.create_collection(spider.name)
         item_data = spider.converter.prepare_data(item)
-        # collection.update_one({'_id': {"$eq": item_data["_id"]}}, item_data, upsert=True)
-        collection.insert_one(item_data)
+        collection.update_one({'_id': item_data['_id']}, {"$set": item_data}, upsert=True)
+        # collection.insert_one(item_data)
+        return item
+
+
+class ParamsPipline:
+    """
+    Собирает характеристики товаров с Леруа Мерлен
+    """
+    def process_item(self, item, spider):
+        params = item['params']
+        _p_data = dict()
+        for param in params:
+            dom = html.fromstring(param)
+            name = dom.xpath(".//dt/text()")[0].strip()
+            value = dom.xpath(".//dd/text()")[0].strip()
+            _p_data.update({name: value})
+        item['params'] = _p_data
+        return item
+
+
+class PhotosObjectPipeline(ImagesPipeline):
+    def file_path(self, request, response=None, info=None, *, item=None):
+        """
+        Переопределяем путь для сохраняемого изображения
+        """
+        path = ph.Path(request.url)
+        image_name = path.name
+        if item:
+            return f'{item["_id"]}/{image_name}'
+        else:
+            return f'full/{image_name}.jpg'
+
+    def get_media_requests(self, item, info):
+        """
+        Загрузка изображений, если они определены для item
+        """
+        if item['images']:
+            for img in item['images']:
+                try:
+                    yield scrapy.Request(img)
+                except Exception as err:
+                    print(err)
+
+    def item_completed(self, results, item, info):
+        """
+        Финальная сборка данных по изображениям в поле images для item
+        """
+        if results:
+            item['images'] = [data for status, data in results if status]
         return item
