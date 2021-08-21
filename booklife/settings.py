@@ -11,7 +11,7 @@ import pathlib as ph
 
 
 BOT_NAME = 'booklife'
-
+IMAGES_STORE = 'images'
 SPIDER_MODULES = ['booklife.spiders']
 NEWSPIDER_MODULE = 'booklife.spiders'
 
@@ -23,7 +23,7 @@ USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Ge
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 20
+CONCURRENT_REQUESTS = 5
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -66,7 +66,7 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'booklife.pipelines.BooklifePipeline': 300,
+    'booklife.pipelines.BooklifePipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
