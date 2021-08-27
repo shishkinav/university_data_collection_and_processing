@@ -15,7 +15,7 @@ from lxml import html
 
 class BooklifePipeline:
     """
-    Единый pipeline для обработки поступающих Item
+    Единый pipeline для сохранения Item в БД
     """
     def __init__(self):
         self.client = MyMongoClient(database_name='books')
@@ -47,6 +47,9 @@ class ParamsPipline:
 
 
 class PhotosObjectPipeline(ImagesPipeline):
+    """
+    Единый pipeline для обработки информации по изображениям и их загрузки
+    """
     def file_path(self, request, response=None, info=None, *, item=None):
         """
         Переопределяем путь для сохраняемого изображения
@@ -75,4 +78,23 @@ class PhotosObjectPipeline(ImagesPipeline):
         """
         if results:
             item['images'] = [data for status, data in results if status]
+        return item
+
+
+class InstaparserPipeline(BooklifePipeline):
+    """
+    pipeline обработки инстаграмм пользователей
+    """
+    def process_item(self, item, spider):
+        collection: Collection = self.client.get_collection(spider.name)
+        if not collection:
+            collection: Collection = self.client.create_collection(spider.name)
+        item_data = spider.converter.prepare_data(item)
+        object = collection.find_one({'_id': item_data['_id']})
+        if not object:
+            collection.insert_one(item_data)
+        else:
+            object['images'].append(item_data['images'][0])
+            collection.update_one({'_id': item_data['_id']}, {"$set": object}, upsert=True)
+        # collection.insert_one(item_data)
         return item
