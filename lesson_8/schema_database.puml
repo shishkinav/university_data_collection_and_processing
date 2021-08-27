@@ -1,0 +1,24 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+interface User {
+    {field} +**id** integer UNIQUE
+    {field} +**login** string
+    {field} +**images** List[dict]
+}
+
+interface Image {
+    {field} +**link** string
+    {field} +**like** integer
+}
+interface Folowers {
+    {field} +**subscriber** integer User(id)
+    {field} +**folower** integer User(id)
+}
+
+Image --o User
+User --|> Folowers
+
+
+
+@enduml
