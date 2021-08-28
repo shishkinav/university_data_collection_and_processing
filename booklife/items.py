@@ -43,3 +43,10 @@ class InstaparserItem(scrapy.Item):
     # post_data = scrapy.Field()
     _id = scrapy.Field()
 
+
+class FollowerItem(scrapy.Item):
+    user_id = scrapy.Field()
+    username = scrapy.Field()
+    follower_id = scrapy.Field()
+    follower_username = scrapy.Field()
+    _id = scrapy.Field()

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 from copy import deepcopy
@@ -6,7 +7,7 @@ from urllib.parse import urlencode
 import scrapy
 from scrapy.http import HtmlResponse
 from booklife.converters import InstaItemConverter
-from booklife.items import InstaparserItem
+from booklife.items import InstaparserItem, FollowerItem
 
 from main import INSTAGRAM_LOGIN, INSTAGRAM_HASH_POSTS, INSTAGRAM_HASH_PASSWORD
 
@@ -23,7 +24,7 @@ class InstaSpider(scrapy.Spider):
     graphql_url = 'https://www.instagram.com/graphql/query/?'
     custom_settings: dict = {
         "ITEM_PIPELINES": {'booklife.pipelines.BooklifePipeline': 300,
-                           # 'booklife.pipelines.InstaparserPipeline': 250,
+                           'booklife.pipelines.InstaFollowersPipeline': 250,
                            # 'booklife.pipelines.PhotosObjectPipeline': 200
                            }
     }
@@ -41,9 +42,39 @@ class InstaSpider(scrapy.Spider):
     def user_login(self, response: HtmlResponse):
         j_body = response.json()
         if j_body['authenticated']:
-            yield response.follow(f'/{self.user_parse}',
-                                  callback=self.user_data_parse,
-                                  cb_kwargs={'username': self.user_parse})
+            # yield response.follow(f'/{self.user_parse}',
+            #                       callback=self.user_data_parse,
+            #                       cb_kwargs={'username': self.user_parse})
+            yield response.follow(f'/{self.insta_login}',
+                                  callback=self.get_followers,
+                                  cb_kwargs={'username': self.insta_login})
+
+    def get_followers(self, response: HtmlResponse, username):
+        user_id = self.fetch_user_id(response.text, username)
+        api_url = f'https://i.instagram.com/api/v1/friendships/{user_id}/followers/?count=5&search_surface=follow_list_page'
+        _headers = deepcopy(response.headers)
+
+        # _headers = 'User-Agent : 'Instagram 155.0.0.37.107''
+        yield response.follow(api_url,
+                              headers={'User-Agent': 'Instagram 155.0.0.37.107'},
+                              callback=self.parse_followers,
+                              cb_kwargs={'owner_id': user_id, 'owner_username': self.insta_login,
+                                         'old_response': response})
+
+    def parse_followers(self, response: HtmlResponse, owner_id, owner_username, old_response: HtmlResponse):
+        _followers_list = response.json().get('users')
+        for follower in _followers_list:
+            user_id = follower.get('pk')
+            username = follower.get('username')
+            yield old_response.follow(f'/{username}',
+                                      cb_kwargs={'username': username})
+            item = FollowerItem(user_id=owner_id,
+                                username=owner_username,
+                                follower_id=user_id,
+                                follower_username=username,
+                                _id=hashlib.sha1(str(owner_username + username).encode()).hexdigest()
+                                )
+            yield item
 
     def user_data_parse(self, response: HtmlResponse, username):
         user_id = self.fetch_user_id(response.text, username)

@@ -11,6 +11,7 @@ from services.manager_mongo.models import MyMongoClient
 from pymongo.collection import Collection
 from scrapy.pipelines.images import ImagesPipeline
 from lxml import html
+from booklife.items import FollowerItem
 
 
 class BooklifePipeline:
@@ -21,6 +22,8 @@ class BooklifePipeline:
         self.client = MyMongoClient(database_name='books')
 
     def process_item(self, item, spider):
+        if isinstance(item, FollowerItem):
+            return item
         collection: Collection = self.client.get_collection(spider.name)
         if not collection:
             collection: Collection = self.client.create_collection(spider.name)
@@ -81,20 +84,15 @@ class PhotosObjectPipeline(ImagesPipeline):
         return item
 
 
-class InstaparserPipeline(BooklifePipeline):
+class InstaFollowersPipeline(BooklifePipeline):
     """
     pipeline обработки инстаграмм пользователей
     """
     def process_item(self, item, spider):
-        collection: Collection = self.client.get_collection(spider.name)
+        if not isinstance(item, FollowerItem):
+            return item
+        collection: Collection = self.client.get_collection('followers')
         if not collection:
-            collection: Collection = self.client.create_collection(spider.name)
-        item_data = spider.converter.prepare_data(item)
-        object = collection.find_one({'_id': item_data['_id']})
-        if not object:
-            collection.insert_one(item_data)
-        else:
-            object['images'].append(item_data['images'][0])
-            collection.update_one({'_id': item_data['_id']}, {"$set": object}, upsert=True)
-        # collection.insert_one(item_data)
+            collection: Collection = self.client.create_collection('followers')
+        collection.update_one({'_id': item['_id']}, {"$set": item}, upsert=True)
         return item
