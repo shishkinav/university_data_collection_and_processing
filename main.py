@@ -16,3 +16,6 @@ MONGO_DATABASE_URL = config.get('mongo', 'ME_CONFIG_MONGODB_URL', fallback='your
 SCRAPY_USE_LOG = config.getboolean('scrapy', 'USE_LOG', fallback=False)
 SCRAPY_LOG_LEVEL = config.get('scrapy', 'LOG_LEVEL', fallback='DEBUG')
 SCRAPY_LOG_PATH = config.get('scrapy', 'LOG_PATH', fallback=BASE_DIR / 'logs' / 'scrapy.log')
+INSTAGRAM_LOGIN = config.get('scrapy', 'INSTAGRAM_LOGIN', fallback='')
+INSTAGRAM_HASH_PASSWORD = config.get('scrapy', 'INSTAGRAM_HASH_PASSWORD', fallback='')
+INSTAGRAM_HASH_POSTS = config.get('scrapy', 'INSTAGRAM_HASH_POSTS', fallback='')

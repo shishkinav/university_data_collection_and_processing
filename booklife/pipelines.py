@@ -11,16 +11,19 @@ from services.manager_mongo.models import MyMongoClient
 from pymongo.collection import Collection
 from scrapy.pipelines.images import ImagesPipeline
 from lxml import html
+from booklife.items import FollowerItem
 
 
 class BooklifePipeline:
     """
-    Единый pipeline для обработки поступающих Item
+    Единый pipeline для сохранения Item в БД
     """
     def __init__(self):
         self.client = MyMongoClient(database_name='books')
 
     def process_item(self, item, spider):
+        if isinstance(item, FollowerItem):
+            return item
         collection: Collection = self.client.get_collection(spider.name)
         if not collection:
             collection: Collection = self.client.create_collection(spider.name)
@@ -47,6 +50,9 @@ class ParamsPipline:
 
 
 class PhotosObjectPipeline(ImagesPipeline):
+    """
+    Единый pipeline для обработки информации по изображениям и их загрузки
+    """
     def file_path(self, request, response=None, info=None, *, item=None):
         """
         Переопределяем путь для сохраняемого изображения
@@ -75,4 +81,18 @@ class PhotosObjectPipeline(ImagesPipeline):
         """
         if results:
             item['images'] = [data for status, data in results if status]
+        return item
+
+
+class InstaFollowersPipeline(BooklifePipeline):
+    """
+    pipeline обработки инстаграмм пользователей
+    """
+    def process_item(self, item, spider):
+        if not isinstance(item, FollowerItem):
+            return item
+        collection: Collection = self.client.get_collection('followers')
+        if not collection:
+            collection: Collection = self.client.create_collection('followers')
+        collection.update_one({'_id': item['_id']}, {"$set": item}, upsert=True)
         return item

@@ -34,3 +34,19 @@ class LeroyMerlinItem(scrapy.Item):
     _id = scrapy.Field(output_processor=TakeFirst())
 
 
+class InstaparserItem(scrapy.Item):
+    # define the fields for your item here like:
+    user_id = scrapy.Field()
+    username = scrapy.Field()
+    image = scrapy.Field()
+    likes = scrapy.Field()
+    # post_data = scrapy.Field()
+    _id = scrapy.Field()
+
+
+class FollowerItem(scrapy.Item):
+    user_id = scrapy.Field()
+    username = scrapy.Field()
+    follower_id = scrapy.Field()
+    follower_username = scrapy.Field()
+    _id = scrapy.Field()

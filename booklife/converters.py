@@ -68,3 +68,26 @@ class LeroyMerlinItemConverter(BaseConverter):
         yield loader.load_item()
 
 
+class InstaItemConverter(BaseConverter):
+    """
+    Класс обработчик данных Item для instagram.com
+    """
+    def prepare_data(self, item: items.BooklifeItem) -> items.LeroyMerlinItem:
+        """
+        Финальное преобразование полей item
+        """
+        return item
+
+    def parse_data(self, response: HtmlResponse):
+        """
+        Парсинг данных для item
+        """
+        loader = ItemLoader(item=items.InstaparserItem(), response=response)
+        # loader.add_xpath('name', '//h1[@class="header-2"]/text()')
+        # loader.add_xpath('images', '//picture[@slot="pictures"]//img[@alt="product image"]/@src')
+        # loader.add_xpath('params', '//div[@class="def-list__group"]')
+        # loader.add_value('link', response.url)
+        # loader.add_xpath('price', '//span[@slot="price"]/text()')
+        # loader.add_xpath('_id', '//span[@slot="article"]/@content')
+        yield loader.load_item()
+
